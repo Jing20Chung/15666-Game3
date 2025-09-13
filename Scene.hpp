@@ -22,6 +22,8 @@
 #include <vector>
 #include <unordered_map>
 
+#include "Mesh.hpp"
+
 struct Scene {
 	struct Transform {
 		//Transform names are useful for debugging and looking up locations in a loaded scene:
@@ -116,11 +118,25 @@ struct Scene {
 		float spot_fov = glm::radians(45.0f); //spot cone fov (in radians)
 	};
 
+	// From my game 2: https://github.com/Jing20Chung/15666-Game2
+	struct Bounds {
+		Bounds(){}
+		Bounds(glm::vec3 max_, glm::vec3 min_): max(max_), min(min_){}
+		glm::vec3 max;
+		glm::vec3 min;
+	};
+
 	//Scenes, of course, may have many of the above objects:
 	std::list< Transform > transforms;
 	std::list< Drawable > drawables;
 	std::list< Camera > cameras;
 	std::list< Light > lights;
+
+	// bounds
+	std::unordered_map<std::string, Bounds> bounds_map;
+
+	// Add: transform associate with mesh
+	std::unordered_map< std::string, std::string > mesh_name_lookup;
 
 	//The "draw" function provides a convenient way to pass all the things in a scene to OpenGL:
 	void draw(Camera const &camera) const;
@@ -134,6 +150,9 @@ struct Scene {
 	void load(std::string const &filename,
 		std::function< void(Scene &, Transform *, std::string const &) > const &on_drawable = nullptr
 	);
+
+	// build bounds_map
+	void build_bounds_map(MeshBuffer const * mesh_buffer);
 
 	//this function is called to read extra chunks from the scene file after the main chunks are read:
 	// this is useful if you, e.g., subclassing scene to represent a game level/area

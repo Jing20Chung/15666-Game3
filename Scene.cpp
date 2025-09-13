@@ -1,4 +1,5 @@
 #include "Scene.hpp"
+#include "Mesh.hpp"
 
 #include "gl_errors.hpp"
 #include "read_write_chunk.hpp"
@@ -6,6 +7,7 @@
 #include <glm/gtc/type_ptr.hpp>
 
 #include <fstream>
+#include <map>
 
 //-------------------------
 
@@ -308,9 +310,63 @@ void Scene::load(std::string const &filename,
 		std::cerr << "WARNING: trailing data in scene file '" << filename << "'" << std::endl;
 	}
 
-
-
 }
+
+
+
+// build bounds_map
+void Scene::build_bounds_map(MeshBuffer const * mesh_buffer) {
+	// build bounds_map
+	// initial bounds for GameObject's size -> collision detect
+	std::map< Scene::Transform*, int > transform_level_map;
+	int max_level = 0;
+	for (auto& transform : transforms) {
+		transform_level_map[&transform] = 0;
+	}
+	for (auto& transform : transforms) {
+		int level = 0;
+		Scene::Transform* current = &transform;
+		while (current != nullptr) {
+			max_level = std::max(level, max_level);
+			transform_level_map[current] = std::max(transform_level_map[current], level);
+			level++;
+			current = current->parent;
+		}
+	}
+
+	// std::cout << "max level is " << max_level << std::endl;
+	std::vector< std::vector< Scene::Transform* > > transform_levels(max_level + 1);
+	for (auto& pair : transform_level_map) {
+		transform_levels[pair.second].push_back(pair.first);
+		
+		if (mesh_name_lookup.find(pair.first->name) != mesh_name_lookup.end()) {
+			bounds_map[pair.first->name].max = mesh_buffer->lookup(mesh_name_lookup[pair.first->name]).max;
+			bounds_map[pair.first->name].min = mesh_buffer->lookup(mesh_name_lookup[pair.first->name]).min;
+			// std::cout << "origin name: " << pair.first->name << ", bounds_max = " << glm::to_string(bounds_map[pair.first->name].max) << ", bounds_min = " << glm::to_string(bounds_map[pair.first->name].min) << std::endl;
+		}
+	}
+
+	// // Start from bottom level (leaf)
+	for (auto& level: transform_levels) {
+		// process all transforms in this level
+		for (auto& transform: level) {
+			Scene::Transform* current = transform;
+			while (current->parent != nullptr) {
+				// std::cout << current->name <<" Update parent: " << current->parent->name << std::endl;
+				bounds_map[current->parent->name].max.x = glm::max(bounds_map[current->parent->name].max.x, bounds_map[current->name].max.x);
+				bounds_map[current->parent->name].max.y = glm::max(bounds_map[current->parent->name].max.y, bounds_map[current->name].max.y);
+				bounds_map[current->parent->name].max.z = glm::max(bounds_map[current->parent->name].max.z, bounds_map[current->name].max.z);
+
+				bounds_map[current->parent->name].min.x = glm::min(bounds_map[current->parent->name].min.x, bounds_map[current->name].min.x);
+				bounds_map[current->parent->name].min.y = glm::min(bounds_map[current->parent->name].min.y, bounds_map[current->name].min.y);
+				bounds_map[current->parent->name].min.z = glm::min(bounds_map[current->parent->name].min.z, bounds_map[current->name].min.z);
+
+				current = current->parent;
+			}
+		}
+	}
+}
+
 
 //-------------------------
 
@@ -373,5 +429,9 @@ void Scene::set(Scene const &other, std::unordered_map< Transform const *, Trans
 	lights = other.lights;
 	for (auto &l : lights) {
 		l.transform = transform_to_transform.at(l.transform);
+	}
+
+	for (auto &pair : other.mesh_name_lookup) {
+		mesh_name_lookup[pair.first] = pair.second;
 	}
 }
