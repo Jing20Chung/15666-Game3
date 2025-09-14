@@ -13,7 +13,7 @@
 
 void MovingFloor::init() {
     Floor::init();
-    velocity = glm::vec3(8.0f, 0, 0);
+    velocity = glm::vec3(0, -3, 0);
 }
 
 void MovingFloor::update(float elapsed) {
@@ -31,9 +31,9 @@ void MovingFloor::update_rotation(float elapsed) {
 } 
 
 // on collision
-void MovingFloor::on_collision(GameObject& other) {
+void MovingFloor::on_collision(GameObject* other) {
     // GameObject::on_collision(other);
-    if (other.tag != "Player") {
+    if (other->tag != "Player") {
         velocity *= -1;
     }
 }

@@ -1,5 +1,5 @@
 #include "LevelGenerator.hpp"
-#include "GameObjects/MovingWall.hpp"
+#include "GameObjects/MovingFloor.hpp"
 #include "GameObjects/JumpAbility.hpp"
 #include "GameObjects/Player.hpp"
 
@@ -14,10 +14,13 @@ LevelGenerator::~LevelGenerator() { }
 void LevelGenerator::spawn_object_row(int level_index, int row_index) {
     std::vector<int> cur_row = level_maps[level_index][row_index];
     int n = (int)cur_row.size();
-    glm::vec3 pos = init_pos;
+    int half_n = n / 2;
+    glm::vec3 pos = glm::vec3(-1 * ((half_n) * C_SIZE_PER_BLOCK + (half_n) * C_SPACING), C_START_Y, 0);
     for (int i = 0; i < n; i++) {
-        object_container_ptr->emplace_back(spawn_object(object_type_lookup[cur_row[i]], pos, glm::quat(0,0,0,1), mesh_buffer, pipeline, vao));
-        pos.x += spacing;
+        if (cur_row[i] != C_EMPTY) {
+            object_container_ptr->emplace_back(spawn_object(object_type_lookup[cur_row[i]], pos, glm::quat(0,0,0,1), mesh_buffer, pipeline, vao));
+        }
+        pos.x += C_POS_OFFSET;
     }
 }
 
@@ -53,16 +56,16 @@ std::shared_ptr< GameObject > LevelGenerator::spawn_object(ObjectType type, glm:
             new_obj_ptr = std::make_shared< Player >();
         }
         break;
-        case ObjectType::MovingWall: {
-            new_obj_ptr = std::make_shared< MovingWall >();
+        case ObjectType::MovingFloor: {
+            new_obj_ptr = std::make_shared< MovingFloor >();
         }
         break;
-        case ObjectType::MovingWallDamageable: {
-            new_obj_ptr = std::make_shared< MovingWall >();
+        case ObjectType::MovingFloorDamageable: {
+            new_obj_ptr = std::make_shared< MovingFloor >();
         }
         break;
         case ObjectType::Bullet: {
-            new_obj_ptr = std::make_shared< MovingWall >();
+            new_obj_ptr = std::make_shared< MovingFloor >();
         }
         break;
         case ObjectType::JumpAbility: {
@@ -117,14 +120,14 @@ void LevelGenerator::init(Scene* scene_, MeshBuffer const * mesh_buffer_, std::l
     this->pipeline = pipeline_;
     this->vao = vao_;
     this->object_container_ptr = object_container_;
-    object_type_lookup[0]= ObjectType::MovingWallDamageable;
-    object_type_lookup[1]= ObjectType::MovingWall;
+    object_type_lookup[0]= ObjectType::MovingFloorDamageable;
+    object_type_lookup[1]= ObjectType::MovingFloor;
     object_type_lookup[2]= ObjectType::Bullet;
     object_type_lookup[3]= ObjectType::JumpAbility;
     xf_name_lookup[ObjectType::Player] = "Player";
-    xf_name_lookup[ObjectType::MovingWallDamageable] = "Wall_Damageable";
-    xf_name_lookup[ObjectType::MovingWall] = "Wall";
+    xf_name_lookup[ObjectType::MovingFloorDamageable] = "Floor_Damageable";
+    xf_name_lookup[ObjectType::MovingFloor] = "Floor";
     xf_name_lookup[ObjectType::Bullet] = "Bullet";
     xf_name_lookup[ObjectType::JumpAbility] = "JumpAbility";
-    level_maps[0] = {{1,0,1},{1,0,2}};
+    level_maps[0] = {{1,0,-1,1},{1,0,2,-1,1},{-1},{0,1,-1,0,0,1}};
 }

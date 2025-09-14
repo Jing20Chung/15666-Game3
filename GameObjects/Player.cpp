@@ -202,8 +202,13 @@ void Player::on_collision(GameObject* other) {
 	// if (other.tag == "Floor") {
 	// 	parent = &other;
 	// }
-	if (other->tag == "Wall") {
-		isDead = true;
+	if (other->tag == "Floor") {
+		if (isTopDownView) {
+			isDead = true;
+		}
+		else {
+			parent = other;
+		}
 	}
 	else {
 		std::cout << "Player collide with " << other->transform->name << std::endl;

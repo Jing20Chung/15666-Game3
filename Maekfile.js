@@ -137,8 +137,8 @@ if (maek.OS === 'windows') {
 //returns objFile: objFileBase + a platform-dependant suffix ('.o' or '.obj')
 const game_names = [
 	maek.CPP('GameObjects/GameObject.cpp'),
-	maek.CPP('GameObjects/Wall.cpp'),
-	maek.CPP('GameObjects/MovingWall.cpp'),
+	maek.CPP('GameObjects/Floor.cpp'),
+	maek.CPP('GameObjects/MovingFloor.cpp'),
 	maek.CPP('GameObjects/JumpAbility.cpp'),
 	maek.CPP('GameObjects/Player.cpp'),
 	maek.CPP('LevelGenerator.cpp'),

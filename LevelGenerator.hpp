@@ -12,8 +12,8 @@
 
 enum struct ObjectType {
     Player,
-    MovingWall,
-    MovingWallDamageable,
+    MovingFloor,
+    MovingFloorDamageable,
     Bullet,
     JumpAbility
 };
@@ -38,11 +38,14 @@ struct LevelGenerator {
 	std::list< std::shared_ptr< GameObject > >* object_container_ptr;
 	std::unordered_map< ObjectType, std::string > xf_name_lookup;
 	std::unordered_map< int, ObjectType > object_type_lookup;
-    glm::vec3 init_pos = glm::vec3(0, 0, 0);
     uint32_t cur_row_index = 0;
     uint32_t cur_level_index = 0;
     uint32_t cur_object_id = 0;
-    float spacing = 2;
+    const float C_START_Y = 5.0f;
+    const float C_SIZE_PER_BLOCK = 1.0f;
+    const float C_SPACING = 1.0f;
+    const float C_POS_OFFSET = C_SIZE_PER_BLOCK + C_SPACING;
+    const int C_EMPTY = -1;
 
     bool isSpawning = false;
     float next_spawn_time = 0;
