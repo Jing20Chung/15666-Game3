@@ -7,68 +7,86 @@
 #include "glm/gtx/string_cast.hpp"
 #include <iostream>
 
-void LevelGenerator::spawn_object_row(Scene* scene, MeshBuffer const * mesh_buffer, Scene::Drawable::Pipeline pipeline, GLuint vao) {
+// I am using shared_ptr to manage object, I don't need to delete all the object in the container manually.
+LevelGenerator::~LevelGenerator() { }
+
+void LevelGenerator::spawn_object_row(MeshBuffer const * mesh_buffer, Scene::Drawable::Pipeline pipeline, GLuint vao) {
     std::vector<int> cur_row = level_maps[cur_level_index][cur_row_index];
     int n = (int)cur_row.size();
     glm::vec3 pos = init_pos;
     for (int i = 0; i < n; i++) {
-        std::cout << "Spawn at " << glm::to_string(pos) << std::endl;
-        spawn_object(object_type_lookup[cur_row[i]], pos, glm::quat(0,0,0,1), scene, mesh_buffer, pipeline, vao);
+        spawn_object(object_type_lookup[cur_row[i]], pos, glm::quat(0,0,0,1), mesh_buffer, pipeline, vao);
         pos.x += spacing;
     }
 }
 
-void LevelGenerator::spawn_object(ObjectType type, glm::vec3 position, glm::quat rotation, Scene* scene, MeshBuffer const * mesh_buffer, Scene::Drawable::Pipeline pipeline, GLuint vao) {
-    scene->transforms.emplace_back();
-	Scene::Transform* t = &scene->transforms.back();
+void LevelGenerator::spawn_object(ObjectType type, glm::vec3 position, glm::quat rotation, MeshBuffer const * mesh_buffer, Scene::Drawable::Pipeline pipeline, GLuint vao) {
+    scene_ptr->transforms.emplace_back();
+	Scene::Transform* t = &scene_ptr->transforms.back();
+    t->name = std::to_string(cur_object_id++);
     Mesh const &mesh = mesh_buffer->lookup(xf_name_lookup[type]);
 	t->position = position;
 	t->rotation = rotation;
-	scene->drawables.emplace_back(t);
-	Scene::Drawable &drawable = scene->drawables.back();
+	scene_ptr->drawables.emplace_back(t);
+	Scene::Drawable &drawable = scene_ptr->drawables.back();
 	drawable.pipeline = pipeline;
 	drawable.pipeline.vao = vao;
 	drawable.pipeline.type = mesh.type;
 	drawable.pipeline.start = mesh.start;
 	drawable.pipeline.count = mesh.count;
-
-    GameObject* new_gameobject;
+    Scene::Bounds bound = scene_ptr->bounds_map[xf_name_lookup[type]];
+    std::shared_ptr< GameObject > new_obj_ptr;
     switch (type) {
         case ObjectType::MovingWall: {
-            MovingWall obj;
-            new_gameobject = &obj;
+            new_obj_ptr = std::make_shared< MovingWall >();
         }
         break;
         case ObjectType::MovingWallDamageable: {
-            MovingWall obj;
-            new_gameobject = &obj;
+            new_obj_ptr = std::make_shared< MovingWall >();
         }
         break;
         case ObjectType::Bullet: {
-            MovingWall obj;
-            new_gameobject = &obj;
+            new_obj_ptr = std::make_shared< MovingWall >();
         }
         break;
         case ObjectType::JumpAbility: {
-            JumpAbility obj;
-            new_gameobject = &obj;
+            new_obj_ptr = std::make_shared< JumpAbility >();
         }
         break;
         default: 
             throw std::runtime_error("LevelGenerator::spawn_object: Unknown ObjectType");
     }
-
-    new_gameobject->bind_drawable(&drawable, bounds_map[xf_name_lookup[type]]);
-    level_objects.emplace_back(*new_gameobject);
+    new_obj_ptr->init();
+    new_obj_ptr->bind_drawable(&drawable, bound);
+    level_objects.emplace_back(new_obj_ptr);
 }
 
-void LevelGenerator::update(float elapsed) {
-    for (auto& obj : level_objects) {
-        obj.update(elapsed);
+// reference: https://stackoverflow.com/questions/42545826/deleting-objects-within-a-list-with-shared-ptr
+void LevelGenerator::clean_up_destroyed_object() {
+    auto iterator = level_objects.begin();
+    while (iterator != level_objects.end()) {
+        if ((*iterator)->marked_destroy) {
+            // std::cout << "clean object! id = " << (*iterator)->transform->name << std::endl;
+            scene_ptr->drawables.remove(*((*iterator)->drawable));
+            scene_ptr->transforms.remove(*((*iterator)->transform));
+            level_objects.erase(iterator++);
+        }
+        else {
+            iterator++;
+        }
     }
 }
 
-void LevelGenerator::load() {
+void LevelGenerator::update(float elapsed) {
+    for (auto obj : level_objects) {
+        obj->update(elapsed);
+    }
+
+    clean_up_destroyed_object();
+}
+
+void LevelGenerator::load(Scene* scene) {
+    this->scene_ptr = scene;
     object_type_lookup[0]= ObjectType::MovingWallDamageable;
     object_type_lookup[1]= ObjectType::MovingWall;
     object_type_lookup[2]= ObjectType::Bullet;
@@ -77,5 +95,5 @@ void LevelGenerator::load() {
     xf_name_lookup[ObjectType::MovingWall] = "Wall";
     xf_name_lookup[ObjectType::Bullet] = "Bullet";
     xf_name_lookup[ObjectType::JumpAbility] = "JumpAbility";
-    level_maps[0] = {{1,1,1},{1,0,1}};
+    level_maps[0] = {{1,0,1},{1,0,1}};
 }

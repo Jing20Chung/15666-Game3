@@ -50,10 +50,9 @@ Load< Sound::Sample > honk_sample(LoadTagDefault, []() -> Sound::Sample const * 
 
 PlayMode::PlayMode() : scene(*hexapod_scene) {
 	scene.build_bounds_map(hexapod_meshes);
-	
-	level_gen.load();
+	level_gen.load(&scene);
 
-	level_gen.spawn_object_row(&scene, hexapod_meshes, lit_color_texture_program_pipeline, hexapod_meshes_for_lit_color_texture_program);
+	level_gen.spawn_object_row(hexapod_meshes, lit_color_texture_program_pipeline, hexapod_meshes_for_lit_color_texture_program);
 
 	//get pointer to camera for convenience:
 	if (scene.cameras.size() != 1) throw std::runtime_error("Expecting scene to have exactly one camera, but it has " + std::to_string(scene.cameras.size()));
@@ -133,7 +132,7 @@ bool PlayMode::handle_event(SDL_Event const &evt, glm::uvec2 const &window_size)
 void PlayMode::update(float elapsed) {
 	//move sound to follow leg tip position:
 	// leg_tip_loop->set_position(get_leg_tip_position(), 1.0f / 60.0f);
-
+	level_gen.update(elapsed);
 	//move camera:
 	{
 

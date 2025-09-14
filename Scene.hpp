@@ -49,6 +49,10 @@ struct Scene {
 		Transform(Transform const &) = delete;
 		//if we delete some constructors, we need to let the compiler know that the default constructor is still okay:
 		Transform() = default;
+
+		bool operator==(const Transform& other) const {
+			return this->name == other.name;
+		}
 	};
 
 	struct Drawable {
@@ -81,6 +85,10 @@ struct Scene {
 				GLenum target = GL_TEXTURE_2D;
 			} textures[TextureCount];
 		} pipeline;
+
+		bool operator==(const Drawable& other) const {
+			return this->transform->name == other.transform->name;
+		}
 	};
 
 	struct Camera {
@@ -124,6 +132,12 @@ struct Scene {
 		Bounds(glm::vec3 max_, glm::vec3 min_): max(max_), min(min_){}
 		glm::vec3 max;
 		glm::vec3 min;
+
+		Bounds& operator=(const Bounds& other) {
+			max = other.max;
+			min = other.min;
+			return *this;
+		}
 	};
 
 	//Scenes, of course, may have many of the above objects:

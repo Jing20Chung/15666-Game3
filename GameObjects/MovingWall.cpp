@@ -13,7 +13,7 @@
 
 void MovingWall::init() {
     Wall::init();
-    velocity = glm::vec3(8.0f, 0, 0);
+    velocity = glm::vec3(0, -1, 0);
 }
 
 void MovingWall::update(float elapsed) {
@@ -23,6 +23,9 @@ void MovingWall::update(float elapsed) {
 // called by Mode, should be in update function
 void MovingWall::update_position(float elapsed) {
     this->transform->position += this->velocity * elapsed;
+    if (this->transform->position.y <= -2) {
+        marked_destroy = true;
+    }
 } 
 
 // on collision

@@ -23,16 +23,14 @@ GameObject::~GameObject(){};
 void GameObject::init() {}
 
 // bind transform and bounds according to mesh
-bool GameObject::bind_drawable(Scene::Drawable* drawable_, Bounds bounds) {
+bool GameObject::bind_drawable(Scene::Drawable* drawable_, Scene::Bounds bounds) {
     assert(drawable_->transform);
     this->transform = drawable_->transform;
     this->size.x = bounds.max.x - bounds.min.x;
     this->size.y = bounds.max.y - bounds.min.y;
     this->size.z = bounds.max.z - bounds.min.z;
     this->drawable = drawable_;
-#ifdef DEBUG_EN
     std::cout << "name: " << transform->name << ", size = " << glm::to_string(this->size) << ", bounds max = " << glm::to_string(this->get_bounds().max) << ", bounds min = " << glm::to_string(this->get_bounds().min)  << std::endl;
-#endif
     return true;
 }
 
@@ -40,7 +38,9 @@ bool GameObject::bind_drawable(Scene::Drawable* drawable_, Bounds bounds) {
 void GameObject::update_input(SDL_Event const &evt) { }
 
 // called by Mode
-void GameObject::update(float elapsed) { }
+void GameObject::update(float elapsed) { 
+    // std::cout <<"GameObject updating" << std::endl;
+}
 
  // on collision
 void GameObject::on_collision(GameObject& other) {

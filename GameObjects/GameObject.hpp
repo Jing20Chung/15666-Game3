@@ -21,7 +21,7 @@ struct Bounds {
 
 struct GameObject {
     GameObject();
-    ~GameObject();
+    virtual ~GameObject();
 
     Scene::Transform* transform; // current binded transform
     Scene::Drawable* drawable; // current binded drawable
@@ -36,9 +36,11 @@ struct GameObject {
     GameObject* parent = nullptr;
 
     std::string tag = "";
+
+    bool marked_destroy = false;
     
     virtual void init();
-    virtual bool bind_drawable(Scene::Drawable* drawable, Bounds bounds); // // bind drawable and bounds
+    virtual bool bind_drawable(Scene::Drawable* drawable, Scene::Bounds bounds); // // bind drawable and bounds
     virtual void update_input(SDL_Event const &evt); // update input from Mode
     virtual void update(float elapsed); // called by Mode
     virtual void on_collision(GameObject& other); // on collision
