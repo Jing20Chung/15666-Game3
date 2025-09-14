@@ -33,7 +33,5 @@ void MovingFloor::update_rotation(float elapsed) {
 // on collision
 void MovingFloor::on_collision(GameObject* other) {
     // GameObject::on_collision(other);
-    if (other->tag != "Player") {
-        velocity *= -1;
-    }
+    
 }

@@ -1,7 +1,9 @@
 #include "LevelGenerator.hpp"
 #include "GameObjects/MovingFloor.hpp"
+#include "GameObjects/MovingFloorDamageable.hpp"
 #include "GameObjects/JumpAbility.hpp"
 #include "GameObjects/Player.hpp"
+#include "GameObjects/Bullet.hpp"
 
 // from https://stackoverflow.com/questions/11515469/how-do-i-print-vector-values-of-type-glmvec3-that-have-been-passed-by-referenc
 #define GLM_ENABLE_EXPERIMENTAL
@@ -61,11 +63,11 @@ std::shared_ptr< GameObject > LevelGenerator::spawn_object(ObjectType type, glm:
         }
         break;
         case ObjectType::MovingFloorDamageable: {
-            new_obj_ptr = std::make_shared< MovingFloor >();
+            new_obj_ptr = std::make_shared< MovingFloorDamageable >();
         }
         break;
         case ObjectType::Bullet: {
-            new_obj_ptr = std::make_shared< MovingFloor >();
+            new_obj_ptr = std::make_shared< Bullet >();
         }
         break;
         case ObjectType::JumpAbility: {
@@ -129,5 +131,8 @@ void LevelGenerator::init(Scene* scene_, MeshBuffer const * mesh_buffer_, std::l
     xf_name_lookup[ObjectType::MovingFloor] = "Floor";
     xf_name_lookup[ObjectType::Bullet] = "Bullet";
     xf_name_lookup[ObjectType::JumpAbility] = "JumpAbility";
-    level_maps[0] = {{1,0,-1,1},{1,0,2,-1,1},{-1},{0,1,-1,0,0,1}};
+    level_maps[0] = {{1,0,-1,1},
+                     {1,0,2,-1,1},
+                     {-1},
+                     {0,1,-1,0,0,1}};
 }

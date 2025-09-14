@@ -78,6 +78,7 @@ void Player::update_input(SDL_Event const &evt) {
 			input.mouse_left = true;
 			if (shoot_oneshot) shoot_oneshot->stop();
 			shoot_oneshot = Sound::play_3D(*shoot_sample, 0.3f, glm::vec3(4.6f, -7.8f, 6.9f)); //hardcoded position of front of car, from blender
+			isRequestShootBullet = true;
 			return;
 		}
 	} else if (evt.type == SDL_EVENT_MOUSE_BUTTON_UP) {
@@ -118,9 +119,13 @@ void Player::update_position(float elapsed) {
 		else if (input.right) {
 			this->transform->position += glm::vec3(move_dist, 0, 0);
 		}
+		else if (input.mouse_left) {
+
+		}
 
 		input.left = false;
 		input.right = false;
+		input.mouse_left = false;
 
 	} else { // Velocity calculation
 		static float move_speed = 30.0f;
@@ -190,6 +195,8 @@ void Player::update_position(float elapsed) {
 		std::cout << "die!" << std::endl;
 		isDead = true;
 	}
+
+	isRequestShootBullet = false;
 } 
 
 // Should be in update function
@@ -198,10 +205,6 @@ void Player::update_rotation(float elapsed) {
 
 // on collision
 void Player::on_collision(GameObject* other) {
-    // GameObject::on_collision(other);
-	// if (other.tag == "Floor") {
-	// 	parent = &other;
-	// }
 	if (other->tag == "Floor") {
 		if (isTopDownView) {
 			isDead = true;

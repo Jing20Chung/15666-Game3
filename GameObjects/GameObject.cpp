@@ -17,7 +17,9 @@
 GameObject::GameObject(){
     this->transform = nullptr;
 };
-GameObject::~GameObject(){};
+GameObject::~GameObject() {
+    parent = nullptr;
+}
 
 // init function
 void GameObject::init() {}

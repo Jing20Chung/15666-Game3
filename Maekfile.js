@@ -140,6 +140,8 @@ const game_names = [
 	maek.CPP('GameObjects/Floor.cpp'),
 	maek.CPP('GameObjects/MovingFloor.cpp'),
 	maek.CPP('GameObjects/JumpAbility.cpp'),
+	maek.CPP('GameObjects/Bullet.cpp'),
+	maek.CPP('GameObjects/MovingFloorDamageable.cpp'),
 	maek.CPP('GameObjects/Player.cpp'),
 	maek.CPP('LevelGenerator.cpp'),
 	maek.CPP('PlayMode.cpp'),

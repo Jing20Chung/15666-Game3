@@ -52,7 +52,9 @@ Load< Sound::Sample > honk_sample(LoadTagDefault, []() -> Sound::Sample const * 
 
 PlayMode::PlayMode() : scene(*game_scene) {
 	scene.build_bounds_map(game_level1_meshes);
-	level_gen.init(&scene, game_level1_meshes, &level_objects, lit_color_texture_program_pipeline, game_level1_meshes_for_lit_color_texture_program);
+	level_gen.init(&scene, game_level1_meshes, &level_objects, 
+	 lit_color_texture_program_pipeline, game_level1_meshes_for_lit_color_texture_program
+	);
 	level_objects.emplace_back(level_gen.spawn_object(ObjectType::Player, glm::vec3(0, -5, 0), glm::quat(0,0,0,1), game_level1_meshes, lit_color_texture_program_pipeline, game_level1_meshes_for_lit_color_texture_program));
 	player = static_cast<Player*>(level_objects.back().get());
 	level_gen.start_spawn(0);
@@ -155,6 +157,13 @@ void PlayMode::update(float elapsed) {
 	//move sound to follow leg tip position:
 	// leg_tip_loop->set_position(get_leg_tip_position(), 1.0f / 60.0f);
 	level_gen.update(elapsed);
+
+	if (player->isRequestShootBullet) {
+		level_objects.emplace_back(
+		 level_gen.spawn_object(ObjectType::Bullet, player->transform->position + glm::vec3(0, 1.1f, 0), glm::quat(0,0,0,1), game_level1_meshes, 
+			 lit_color_texture_program_pipeline, game_level1_meshes_for_lit_color_texture_program
+		));
+	}
 
     for (auto obj : level_objects) {
         obj->update(elapsed);

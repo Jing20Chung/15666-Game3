@@ -23,6 +23,7 @@ struct Player : GameObject {
 
     bool isDead = false;
     bool isWin = false;
+    bool isRequestShootBullet = false;
     bool isTopDownView = true;
 
     // from PlayMode
