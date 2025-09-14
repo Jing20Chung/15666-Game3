@@ -4,6 +4,7 @@
 #include "../Mode.hpp"
 #include "../PlayMode.hpp"
 #include "../Ray.hpp"
+#include "../data_path.hpp"
 
 #include <iostream>
 #include <glm/glm.hpp>
@@ -11,6 +12,18 @@
 // from https://stackoverflow.com/questions/11515469/how-do-i-print-vector-values-of-type-glmvec3-that-have-been-passed-by-referenc
 #define GLM_ENABLE_EXPERIMENTAL
 #include "glm/gtx/string_cast.hpp"
+
+Load< Sound::Sample > move_left_sample(LoadTagDefault, []() -> Sound::Sample const * {
+	return new Sound::Sample(data_path("honk.wav"));
+});
+
+Load< Sound::Sample > move_right_sample(LoadTagDefault, []() -> Sound::Sample const * {
+	return new Sound::Sample(data_path("honk.wav"));
+});
+
+Load< Sound::Sample > shoot_sample(LoadTagDefault, []() -> Sound::Sample const * {
+	return new Sound::Sample(data_path("honk.wav"));
+});
 
 void Player::init() {
 	tag = "Player";
@@ -27,9 +40,13 @@ void Player::update_input(SDL_Event const &evt) {
 			return;
 		} else if (evt.key.key == SDLK_A) {
             input.left = true;
+			if (move_oneshot) move_oneshot->stop();
+			move_oneshot = Sound::play_3D(*move_left_sample, 0.3f, glm::vec3(4.6f, -7.8f, 6.9f)); //hardcoded position of front of car, from blender
 			return;
 		} else if (evt.key.key == SDLK_D) {
             input.right = true;
+			if (move_oneshot) move_oneshot->stop();
+			move_oneshot = Sound::play_3D(*move_right_sample, 0.3f, glm::vec3(4.6f, -7.8f, 6.9f)); //hardcoded position of front of car, from blender
 			return;
 		} else if (evt.key.key == SDLK_W) {
             input.up = true;
@@ -56,6 +73,18 @@ void Player::update_input(SDL_Event const &evt) {
 			return;
 		} 
 	} else if (evt.type == SDL_EVENT_MOUSE_BUTTON_DOWN) {
+		// reference: https://wiki.libsdl.org/SDL2/SDL_MouseButtonEvent
+		if (evt.button.button == SDL_BUTTON_LEFT) {
+			input.mouse_left = true;
+			if (shoot_oneshot) shoot_oneshot->stop();
+			shoot_oneshot = Sound::play_3D(*shoot_sample, 0.3f, glm::vec3(4.6f, -7.8f, 6.9f)); //hardcoded position of front of car, from blender
+			return;
+		}
+	} else if (evt.type == SDL_EVENT_MOUSE_BUTTON_UP) {
+		if (evt.button.button == SDL_BUTTON_LEFT) {
+			input.mouse_left = false;
+			return;
+		}
 	} else if (evt.type == SDL_EVENT_MOUSE_MOTION) {
 		// if (SDL_GetWindowRelativeMouseMode(Mode::window) == true) {
 		// 	glm::vec2 motion = glm::vec2(
@@ -82,7 +111,7 @@ void Player::update(float elapsed) {
 void Player::update_position(float elapsed) {
 	if (isTopDownView) 
 	{
-		static float move_dist = 1.0f;
+		static float move_dist = 2.0f;
 		if (input.left) {
 			this->transform->position -= glm::vec3(move_dist, 0, 0);
 		}

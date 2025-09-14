@@ -21,7 +21,7 @@ Load< MeshBuffer > game_level1_meshes(LoadTagDefault, []() -> MeshBuffer const *
 	return ret;
 });
 
-Load< Scene > hexapod_scene(LoadTagDefault, []() -> Scene const * {
+Load< Scene > game_scene(LoadTagDefault, []() -> Scene const * {
 	return new Scene(data_path("game3_1.scene"), [&](Scene &scene, Scene::Transform *transform, std::string const &mesh_name){
 		Mesh const &mesh = game_level1_meshes->lookup(mesh_name);
 
@@ -50,7 +50,7 @@ Load< Sound::Sample > honk_sample(LoadTagDefault, []() -> Sound::Sample const * 
 });
 
 
-PlayMode::PlayMode() : scene(*hexapod_scene) {
+PlayMode::PlayMode() : scene(*game_scene) {
 	scene.build_bounds_map(game_level1_meshes);
 	level_gen.init(&scene, game_level1_meshes, &level_objects, lit_color_texture_program_pipeline, game_level1_meshes_for_lit_color_texture_program);
 	level_objects.emplace_back(level_gen.spawn_object(ObjectType::Player, glm::vec3(0, -5, 0), glm::quat(0,0,0,1), game_level1_meshes, lit_color_texture_program_pipeline, game_level1_meshes_for_lit_color_texture_program));

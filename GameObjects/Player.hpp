@@ -3,6 +3,7 @@
 
 #include "GameObject.hpp"
 #include "../Load.hpp"
+#include "../Sound.hpp"
 
 struct Player : GameObject {
     virtual void init() override; // init funciton
@@ -11,9 +12,9 @@ struct Player : GameObject {
     virtual void on_collision(GameObject* other) override; // on collision
 
     struct InputSet {
-        bool left, right, up, down, space;
+        bool left, right, up, down, space, mouse_left;
         InputSet() {
-            left = right = up = down = space = false;
+            left = right = up = down = space = mouse_left = false;
         }
     } input;
 
@@ -23,4 +24,8 @@ struct Player : GameObject {
     bool isDead = false;
     bool isWin = false;
     bool isTopDownView = true;
+
+    // from PlayMode
+	std::shared_ptr< Sound::PlayingSample > move_oneshot;
+	std::shared_ptr< Sound::PlayingSample > shoot_oneshot;
 };
