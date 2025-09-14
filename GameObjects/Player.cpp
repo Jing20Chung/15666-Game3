@@ -92,7 +92,7 @@ void Player::update_position(float elapsed) {
 
 		input.left = false;
 		input.right = false;
-		
+
 	} else { // Velocity calculation
 		static float move_speed = 30.0f;
 		static float move_speed_max = 10.0f;
@@ -146,7 +146,7 @@ void Player::update_position(float elapsed) {
 
 		if (parent != nullptr) {
 			// check leave parent
-			if (GameObject::check_collision(*this, *parent)) {
+			if (GameObject::check_collision(static_cast<GameObject*>(this), parent)) {
 				// hard code set z on the floor
 				this->transform->position.z = size.z / 2 + parent->get_bounds().max.z;
 			}
@@ -168,26 +168,15 @@ void Player::update_rotation(float elapsed) {
 } 
 
 // on collision
-void Player::on_collision(GameObject& other) {
+void Player::on_collision(GameObject* other) {
     // GameObject::on_collision(other);
 	// if (other.tag == "Floor") {
 	// 	parent = &other;
 	// }
-	// else if (other.tag == "Wall") {
-	// 	glm::vec3 dir = velocity;
-	// 	dir.z = 0;
-	// 	Ray ray(transform->position, dir);
-	// 	glm::vec2 hit_time;
-	// 	ray.hit(other.get_bounds(), hit_time);
-
-	// 	transform->position -= dir * hit_time.x;
-	// }
-	// else if (other.tag == "Door") {
-	// 	isWin = true;
-	// 	std::cout << "Win!!!!!!!!!" << std::endl;
-	// }
-	// else 
-	{
-		std::cout << "Player collide with " << other.transform->name << std::endl;
+	if (other->tag == "Wall") {
+		isDead = true;
+	}
+	else {
+		std::cout << "Player collide with " << other->transform->name << std::endl;
 	}
 }

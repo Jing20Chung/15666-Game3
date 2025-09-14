@@ -52,5 +52,5 @@ struct PlayMode : Mode {
 	std::list< std::shared_ptr< GameObject > > level_objects;
 
 	// Player
-	Player player;
+	Player* player;
 };

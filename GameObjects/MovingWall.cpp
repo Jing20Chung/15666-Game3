@@ -29,8 +29,8 @@ void MovingWall::update_position(float elapsed) {
 } 
 
 // on collision
-void MovingWall::on_collision(GameObject& other) {
-    if (other.tag != "Player") {
+void MovingWall::on_collision(GameObject* other) {
+    if (other->tag != "Player") {
         velocity *= -1;
     }
 }

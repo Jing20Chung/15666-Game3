@@ -1,4 +1,6 @@
 #include "PlayMode.hpp"
+#include "LoseMode.hpp"
+#include "WinMode.hpp"
 
 #include "LitColorTextureProgram.hpp"
 
@@ -12,16 +14,16 @@
 
 #include <random>
 
-GLuint hexapod_meshes_for_lit_color_texture_program = 0;
-Load< MeshBuffer > hexapod_meshes(LoadTagDefault, []() -> MeshBuffer const * {
+GLuint game_level1_meshes_for_lit_color_texture_program = 0;
+Load< MeshBuffer > game_level1_meshes(LoadTagDefault, []() -> MeshBuffer const * {
 	MeshBuffer const *ret = new MeshBuffer(data_path("game3_1.pnct"));
-	hexapod_meshes_for_lit_color_texture_program = ret->make_vao_for_program(lit_color_texture_program->program);
+	game_level1_meshes_for_lit_color_texture_program = ret->make_vao_for_program(lit_color_texture_program->program);
 	return ret;
 });
 
 Load< Scene > hexapod_scene(LoadTagDefault, []() -> Scene const * {
 	return new Scene(data_path("game3_1.scene"), [&](Scene &scene, Scene::Transform *transform, std::string const &mesh_name){
-		Mesh const &mesh = hexapod_meshes->lookup(mesh_name);
+		Mesh const &mesh = game_level1_meshes->lookup(mesh_name);
 
 		if (mesh.count != 0) scene.mesh_name_lookup[transform->name] = mesh_name;
 
@@ -30,7 +32,7 @@ Load< Scene > hexapod_scene(LoadTagDefault, []() -> Scene const * {
 
 		drawable.pipeline = lit_color_texture_program_pipeline;
 
-		drawable.pipeline.vao = hexapod_meshes_for_lit_color_texture_program;
+		drawable.pipeline.vao = game_level1_meshes_for_lit_color_texture_program;
 		drawable.pipeline.type = mesh.type;
 		drawable.pipeline.start = mesh.start;
 		drawable.pipeline.count = mesh.count;
@@ -49,10 +51,10 @@ Load< Sound::Sample > honk_sample(LoadTagDefault, []() -> Sound::Sample const * 
 
 
 PlayMode::PlayMode() : scene(*hexapod_scene) {
-	scene.build_bounds_map(hexapod_meshes);
-	level_gen.init(&scene, hexapod_meshes, &level_objects, lit_color_texture_program_pipeline, hexapod_meshes_for_lit_color_texture_program);
-	level_objects.emplace_back(level_gen.spawn_object(ObjectType::Player, glm::vec3(0, -5, 0), glm::quat(0,0,0,1), hexapod_meshes, lit_color_texture_program_pipeline, hexapod_meshes_for_lit_color_texture_program));
-	
+	scene.build_bounds_map(game_level1_meshes);
+	level_gen.init(&scene, game_level1_meshes, &level_objects, lit_color_texture_program_pipeline, game_level1_meshes_for_lit_color_texture_program);
+	level_objects.emplace_back(level_gen.spawn_object(ObjectType::Player, glm::vec3(0, -5, 0), glm::quat(0,0,0,1), game_level1_meshes, lit_color_texture_program_pipeline, game_level1_meshes_for_lit_color_texture_program));
+	player = static_cast<Player*>(level_objects.back().get());
 	level_gen.start_spawn(0);
 	//get pointer to camera for convenience:
 	if (scene.cameras.size() != 1) throw std::runtime_error("Expecting scene to have exactly one camera, but it has " + std::to_string(scene.cameras.size()));
@@ -138,7 +140,7 @@ void PlayMode::clean_up_destroyed_object() {
     auto iterator = level_objects.begin();
     while (iterator != level_objects.end()) {
         if ((*iterator)->marked_destroy) {
-            std::cout << "clean object! id = " << (*iterator)->transform->name << std::endl;
+            // std::cout << "clean object! id = " << (*iterator)->transform->name << std::endl;
             scene.drawables.remove(*((*iterator)->drawable));
             scene.transforms.remove(*((*iterator)->transform));
             level_objects.erase(iterator++);
@@ -168,14 +170,15 @@ void PlayMode::update(float elapsed) {
 
 			GameObject* obj1 = it1->get();
 			GameObject* obj2 = it2->get();
-			if (GameObject::check_collision(*obj1, *obj2)) {
-				obj1->on_collision(*obj2);
-				obj2->on_collision(*obj1);
+			if (GameObject::check_collision(obj1, obj2)) {
+				obj1->on_collision(obj2);
+				obj2->on_collision(obj1);
 			}
 			it2++;
 		}
 		it1++;
 	}
+
 
 	//move camera:
 	// {
@@ -210,6 +213,11 @@ void PlayMode::update(float elapsed) {
 	right.downs = 0;
 	up.downs = 0;
 	down.downs = 0;
+
+
+	if (player->isDead) {
+		Mode::set_current(std::make_shared< LoseMode >());
+	}
 }
 
 void PlayMode::draw(glm::uvec2 const &drawable_size) {

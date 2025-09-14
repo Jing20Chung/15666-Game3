@@ -38,9 +38,9 @@ struct GameObject {
     virtual bool bind_drawable(Scene::Drawable* drawable, Bounds bounds); // // bind drawable and bounds
     virtual void update_input(SDL_Event const &evt); // update input from Mode
     virtual void update(float elapsed); // called by Mode
-    virtual void on_collision(GameObject& other); // on collision
+    virtual void on_collision(GameObject* other); // on collision
 
     Bounds get_bounds(); // get current bounds
 
-    static bool check_collision(GameObject& obj_a, GameObject& obj_b);
+    static bool check_collision(GameObject* obj_a, GameObject* obj_b);
 };

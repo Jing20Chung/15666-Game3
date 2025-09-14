@@ -43,9 +43,9 @@ void GameObject::update(float elapsed) {
 }
 
  // on collision
-void GameObject::on_collision(GameObject& other) {
+void GameObject::on_collision(GameObject* other) {
 #ifdef DEBUG_EN
-    std::cout << transform->name << " collide with " << other.transform->name << std::endl;
+    std::cout << transform->name << " collide with " << other->transform->name << std::endl;
 #endif
 }
 
@@ -58,11 +58,11 @@ Bounds GameObject::get_bounds() {
     return Bounds(bound_max, bound_min);
 }
 
-bool GameObject::check_collision(GameObject& obj_a, GameObject& obj_b) {
+bool GameObject::check_collision(GameObject* obj_a, GameObject* obj_b) {
     // std::cout << "check_collision: " << obj_a.transform->name << " with " << obj_b.transform->name << std::endl;
     // check collision
-	Bounds bounds_a = obj_a.get_bounds();
-	Bounds bounds_b = obj_b.get_bounds();
+	Bounds bounds_a = obj_a->get_bounds();
+	Bounds bounds_b = obj_b->get_bounds();
 	if (bounds_a.min.x <= bounds_b.max.x && bounds_a.max.x >= bounds_b.min.x) {
 		if (bounds_a.min.y <= bounds_b.max.y && bounds_a.max.y >= bounds_b.min.y) {
 			if (bounds_a.min.z <= bounds_b.max.z && bounds_a.max.z >= bounds_b.min.z) {

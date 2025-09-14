@@ -143,6 +143,8 @@ const game_names = [
 	maek.CPP('GameObjects/Player.cpp'),
 	maek.CPP('LevelGenerator.cpp'),
 	maek.CPP('PlayMode.cpp'),
+	maek.CPP('WinMode.cpp'),
+	maek.CPP('LoseMode.cpp'),
 	maek.CPP('Ray.cpp'),
 	maek.CPP('main.cpp'),
 	maek.CPP('LitColorTextureProgram.cpp'),
