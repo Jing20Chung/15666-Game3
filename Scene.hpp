@@ -11,6 +11,7 @@
  */
 
 #include "GL.hpp"
+#include "Bounds.hpp"
 
 #include <glm/glm.hpp>
 #include <glm/gtc/quaternion.hpp>
@@ -124,20 +125,6 @@ struct Scene {
 
 		//Spotlight specific:
 		float spot_fov = glm::radians(45.0f); //spot cone fov (in radians)
-	};
-
-	// From my game 2: https://github.com/Jing20Chung/15666-Game2
-	struct Bounds {
-		Bounds(){}
-		Bounds(glm::vec3 max_, glm::vec3 min_): max(max_), min(min_){}
-		glm::vec3 max;
-		glm::vec3 min;
-
-		Bounds& operator=(const Bounds& other) {
-			max = other.max;
-			min = other.min;
-			return *this;
-		}
 	};
 
 	//Scenes, of course, may have many of the above objects:

@@ -312,8 +312,6 @@ void Scene::load(std::string const &filename,
 
 }
 
-
-
 // build bounds_map
 void Scene::build_bounds_map(MeshBuffer const * mesh_buffer) {
 	// build bounds_map

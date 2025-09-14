@@ -22,4 +22,5 @@ struct Player : GameObject {
 
     bool isDead = false;
     bool isWin = false;
+    bool isTopDownView = true;
 };

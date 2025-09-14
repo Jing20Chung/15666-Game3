@@ -50,10 +50,10 @@ Load< Sound::Sample > honk_sample(LoadTagDefault, []() -> Sound::Sample const * 
 
 PlayMode::PlayMode() : scene(*hexapod_scene) {
 	scene.build_bounds_map(hexapod_meshes);
-	level_gen.load(&scene);
-
-	level_gen.spawn_object_row(hexapod_meshes, lit_color_texture_program_pipeline, hexapod_meshes_for_lit_color_texture_program);
-
+	level_gen.init(&scene, hexapod_meshes, &level_objects, lit_color_texture_program_pipeline, hexapod_meshes_for_lit_color_texture_program);
+	level_objects.emplace_back(level_gen.spawn_object(ObjectType::Player, glm::vec3(0, -5, 0), glm::quat(0,0,0,1), hexapod_meshes, lit_color_texture_program_pipeline, hexapod_meshes_for_lit_color_texture_program));
+	
+	level_gen.start_spawn(0);
 	//get pointer to camera for convenience:
 	if (scene.cameras.size() != 1) throw std::runtime_error("Expecting scene to have exactly one camera, but it has " + std::to_string(scene.cameras.size()));
 	camera = &scene.cameras.front();
@@ -67,7 +67,9 @@ PlayMode::~PlayMode() {
 }
 
 bool PlayMode::handle_event(SDL_Event const &evt, glm::uvec2 const &window_size) {
-
+	for (auto obj: level_objects) {
+		obj->update_input(evt);
+	}
 	if (evt.type == SDL_EVENT_KEY_DOWN) {
 		if (evt.key.key == SDLK_ESCAPE) {
 			SDL_SetWindowRelativeMouseMode(Mode::window, false);
@@ -111,49 +113,90 @@ bool PlayMode::handle_event(SDL_Event const &evt, glm::uvec2 const &window_size)
 			SDL_SetWindowRelativeMouseMode(Mode::window, true);
 			return true;
 		}
-	} else if (evt.type == SDL_EVENT_MOUSE_MOTION) {
-		if (SDL_GetWindowRelativeMouseMode(Mode::window) == true) {
-			glm::vec2 motion = glm::vec2(
-				evt.motion.xrel / float(window_size.y),
-				-evt.motion.yrel / float(window_size.y)
-			);
-			camera->transform->rotation = glm::normalize(
-				camera->transform->rotation
-				* glm::angleAxis(-motion.x * camera->fovy, glm::vec3(0.0f, 1.0f, 0.0f))
-				* glm::angleAxis(motion.y * camera->fovy, glm::vec3(1.0f, 0.0f, 0.0f))
-			);
-			return true;
-		}
-	}
+	} 
+	// else if (evt.type == SDL_EVENT_MOUSE_MOTION) {
+	// 	if (SDL_GetWindowRelativeMouseMode(Mode::window) == true) {
+	// 		glm::vec2 motion = glm::vec2(
+	// 			evt.motion.xrel / float(window_size.y),
+	// 			-evt.motion.yrel / float(window_size.y)
+	// 		);
+	// 		camera->transform->rotation = glm::normalize(
+	// 			camera->transform->rotation
+	// 			* glm::angleAxis(-motion.x * camera->fovy, glm::vec3(0.0f, 1.0f, 0.0f))
+	// 			* glm::angleAxis(motion.y * camera->fovy, glm::vec3(1.0f, 0.0f, 0.0f))
+	// 		);
+	// 		return true;
+	// 	}
+	// }
 
 	return false;
+}
+
+
+// reference: https://stackoverflow.com/questions/42545826/deleting-objects-within-a-list-with-shared-ptr
+void PlayMode::clean_up_destroyed_object() {
+    auto iterator = level_objects.begin();
+    while (iterator != level_objects.end()) {
+        if ((*iterator)->marked_destroy) {
+            std::cout << "clean object! id = " << (*iterator)->transform->name << std::endl;
+            scene.drawables.remove(*((*iterator)->drawable));
+            scene.transforms.remove(*((*iterator)->transform));
+            level_objects.erase(iterator++);
+        }
+        else {
+            iterator++;
+        }
+    }
 }
 
 void PlayMode::update(float elapsed) {
 	//move sound to follow leg tip position:
 	// leg_tip_loop->set_position(get_leg_tip_position(), 1.0f / 60.0f);
 	level_gen.update(elapsed);
-	//move camera:
-	{
 
-		//combine inputs into a move:
-		constexpr float PlayerSpeed = 30.0f;
-		glm::vec2 move = glm::vec2(0.0f);
-		if (left.pressed && !right.pressed) move.x =-1.0f;
-		if (!left.pressed && right.pressed) move.x = 1.0f;
-		if (down.pressed && !up.pressed) move.y =-1.0f;
-		if (!down.pressed && up.pressed) move.y = 1.0f;
+    for (auto obj : level_objects) {
+        obj->update(elapsed);
+    }
 
-		//make it so that moving diagonally doesn't go faster:
-		if (move != glm::vec2(0.0f)) move = glm::normalize(move) * PlayerSpeed * elapsed;
+    clean_up_destroyed_object();
 
-		glm::mat4x3 frame = camera->transform->make_parent_from_local();
-		glm::vec3 frame_right = frame[0];
-		//glm::vec3 up = frame[1];
-		glm::vec3 frame_forward = -frame[2];
+	auto it1 = level_objects.begin();
+	while (it1 != level_objects.end()) {
+		auto it2 = it1;
+		std::advance(it2, 1);
+		while (it2 != level_objects.end()) {
 
-		camera->transform->position += move.x * frame_right + move.y * frame_forward;
+			GameObject* obj1 = it1->get();
+			GameObject* obj2 = it2->get();
+			if (GameObject::check_collision(*obj1, *obj2)) {
+				obj1->on_collision(*obj2);
+				obj2->on_collision(*obj1);
+			}
+			it2++;
+		}
+		it1++;
 	}
+
+	//move camera:
+	// {
+	// 	//combine inputs into a move:
+	// 	constexpr float PlayerSpeed = 30.0f;
+	// 	glm::vec2 move = glm::vec2(0.0f);
+	// 	if (left.pressed && !right.pressed) move.x =-1.0f;
+	// 	if (!left.pressed && right.pressed) move.x = 1.0f;
+	// 	if (down.pressed && !up.pressed) move.y =-1.0f;
+	// 	if (!down.pressed && up.pressed) move.y = 1.0f;
+
+	// 	//make it so that moving diagonally doesn't go faster:
+	// 	if (move != glm::vec2(0.0f)) move = glm::normalize(move) * PlayerSpeed * elapsed;
+
+	// 	glm::mat4x3 frame = camera->transform->make_parent_from_local();
+	// 	glm::vec3 frame_right = frame[0];
+	// 	//glm::vec3 up = frame[1];
+	// 	glm::vec3 frame_forward = -frame[2];
+
+	// 	camera->transform->position += move.x * frame_right + move.y * frame_forward;
+	// }
 
 	{ //update listener to camera position:
 		glm::mat4x3 frame = camera->transform->make_parent_from_local();

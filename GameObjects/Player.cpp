@@ -80,13 +80,25 @@ void Player::update(float elapsed) {
 
 // Should be in update function
 void Player::update_position(float elapsed) {
-	// Velocity calculation
+	if (isTopDownView) 
 	{
+		static float move_dist = 1.0f;
+		if (input.left) {
+			this->transform->position -= glm::vec3(move_dist, 0, 0);
+		}
+		else if (input.right) {
+			this->transform->position += glm::vec3(move_dist, 0, 0);
+		}
+
+		input.left = false;
+		input.right = false;
+		
+	} else { // Velocity calculation
 		static float move_speed = 30.0f;
 		static float move_speed_max = 10.0f;
 		static float jump_speed = 30.0f;
 		static float max_fall_speed = -30.0f;
-		static float slowdown_speed = 20.0f;
+		static float slowdown_speed = 0.0f;
 		constexpr float C_VELOCITY_EPSILON = 0.001f;
 		constexpr float C_GRAVITY = -9.18f * 8;
 
@@ -128,20 +140,20 @@ void Player::update_position(float elapsed) {
 		velocity.x = velocity.x < 0? glm::max(velocity.x, -move_speed_max): glm::min(velocity.x, move_speed_max);
 		velocity.y = velocity.y < 0? glm::max(velocity.y, -move_speed_max): glm::min(velocity.y, move_speed_max);
 		velocity.z = glm::max(velocity.z, max_fall_speed);
-	}
     
-	// Update position
-    this->transform->position += this->velocity * elapsed;
+		// Update position
+		this->transform->position += this->velocity * elapsed;
 
-	if (parent != nullptr) {
-		// check leave parent
-		if (GameObject::check_collision(*this, *parent)) {
-			// hard code set z on the floor
-			this->transform->position.z = size.z / 2 + parent->get_bounds().max.z;
-		}
-		else {
-			// detach parent
-			parent = nullptr;
+		if (parent != nullptr) {
+			// check leave parent
+			if (GameObject::check_collision(*this, *parent)) {
+				// hard code set z on the floor
+				this->transform->position.z = size.z / 2 + parent->get_bounds().max.z;
+			}
+			else {
+				// detach parent
+				parent = nullptr;
+			}
 		}
 	}
 
@@ -158,20 +170,24 @@ void Player::update_rotation(float elapsed) {
 // on collision
 void Player::on_collision(GameObject& other) {
     // GameObject::on_collision(other);
-	if (other.tag == "Floor") {
-		parent = &other;
-	}
-	else if (other.tag == "Wall") {
-		glm::vec3 dir = velocity;
-		dir.z = 0;
-		Ray ray(transform->position, dir);
-		glm::vec2 hit_time;
-		ray.hit(other.get_bounds(), hit_time);
+	// if (other.tag == "Floor") {
+	// 	parent = &other;
+	// }
+	// else if (other.tag == "Wall") {
+	// 	glm::vec3 dir = velocity;
+	// 	dir.z = 0;
+	// 	Ray ray(transform->position, dir);
+	// 	glm::vec2 hit_time;
+	// 	ray.hit(other.get_bounds(), hit_time);
 
-		transform->position -= dir * hit_time.x;
-	}
-	else if (other.tag == "Door") {
-		isWin = true;
-		std::cout << "Win!!!!!!!!!" << std::endl;
+	// 	transform->position -= dir * hit_time.x;
+	// }
+	// else if (other.tag == "Door") {
+	// 	isWin = true;
+	// 	std::cout << "Win!!!!!!!!!" << std::endl;
+	// }
+	// else 
+	{
+		std::cout << "Player collide with " << other.transform->name << std::endl;
 	}
 }

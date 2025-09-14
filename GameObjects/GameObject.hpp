@@ -2,6 +2,7 @@
 #pragma once
 
 #include "../GL.hpp"
+#include "../Bounds.hpp"
 #include "../Scene.hpp"
 #include "../Mesh.hpp"
 #include "../Load.hpp"
@@ -12,12 +13,6 @@
 #include <glm/gtc/type_ptr.hpp>
 #include <string.h>
 
-struct Bounds {
-    Bounds(){}
-    Bounds(glm::vec3 max_, glm::vec3 min_): max(max_), min(min_){}
-    glm::vec3 max;
-    glm::vec3 min;
-};
 
 struct GameObject {
     GameObject();
@@ -40,7 +35,7 @@ struct GameObject {
     bool marked_destroy = false;
     
     virtual void init();
-    virtual bool bind_drawable(Scene::Drawable* drawable, Scene::Bounds bounds); // // bind drawable and bounds
+    virtual bool bind_drawable(Scene::Drawable* drawable, Bounds bounds); // // bind drawable and bounds
     virtual void update_input(SDL_Event const &evt); // update input from Mode
     virtual void update(float elapsed); // called by Mode
     virtual void on_collision(GameObject& other); // on collision

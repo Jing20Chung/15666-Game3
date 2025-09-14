@@ -1,6 +1,6 @@
 // From my game 2: https://github.com/Jing20Chung/15666-Game2
 #define GLM_ENABLE_EXPERIMENTAL
-// #define DEBUG_EN
+#define DEBUG_EN
 
 #include "GameObject.hpp"
 #include "../Scene.hpp"
@@ -23,14 +23,14 @@ GameObject::~GameObject(){};
 void GameObject::init() {}
 
 // bind transform and bounds according to mesh
-bool GameObject::bind_drawable(Scene::Drawable* drawable_, Scene::Bounds bounds) {
+bool GameObject::bind_drawable(Scene::Drawable* drawable_, Bounds bounds) {
     assert(drawable_->transform);
     this->transform = drawable_->transform;
     this->size.x = bounds.max.x - bounds.min.x;
     this->size.y = bounds.max.y - bounds.min.y;
     this->size.z = bounds.max.z - bounds.min.z;
     this->drawable = drawable_;
-    std::cout << "name: " << transform->name << ", size = " << glm::to_string(this->size) << ", bounds max = " << glm::to_string(this->get_bounds().max) << ", bounds min = " << glm::to_string(this->get_bounds().min)  << std::endl;
+    // std::cout << "name: " << transform->name << ", size = " << glm::to_string(this->size) << ", bounds max = " << glm::to_string(this->get_bounds().max) << ", bounds min = " << glm::to_string(this->get_bounds().min)  << std::endl;
     return true;
 }
 
@@ -59,6 +59,7 @@ Bounds GameObject::get_bounds() {
 }
 
 bool GameObject::check_collision(GameObject& obj_a, GameObject& obj_b) {
+    // std::cout << "check_collision: " << obj_a.transform->name << " with " << obj_b.transform->name << std::endl;
     // check collision
 	Bounds bounds_a = obj_a.get_bounds();
 	Bounds bounds_b = obj_b.get_bounds();

@@ -6,6 +6,7 @@
 #include "LevelGenerator.hpp"
 
 #include "GameObjects/GameObject.hpp"
+#include "GameObjects/Player.hpp"
 
 #include <glm/glm.hpp>
 
@@ -18,6 +19,7 @@ struct PlayMode : Mode {
 
 	//functions called by main loop:
 	virtual bool handle_event(SDL_Event const &, glm::uvec2 const &window_size) override;
+	void clean_up_destroyed_object();
 	virtual void update(float elapsed) override;
 	virtual void draw(glm::uvec2 const &drawable_size) override;
 
@@ -40,11 +42,15 @@ struct PlayMode : Mode {
 	//car honk sound:
 	std::shared_ptr< Sound::PlayingSample > honk_oneshot;
 
-
 	//camera:
 	Scene::Camera *camera = nullptr;
 
 	// LevelGenerator
 	LevelGenerator level_gen;
 
+	// object container
+	std::list< std::shared_ptr< GameObject > > level_objects;
+
+	// Player
+	Player player;
 };
