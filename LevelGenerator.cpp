@@ -30,7 +30,7 @@ void LevelGenerator::spawn_object_row(int level_index, int row_index) {
     }
 }
 
-std::shared_ptr< GameObject > LevelGenerator::spawn_object(ObjectType type, glm::vec3 position, glm::quat rotation, MeshBuffer const * mesh_buffer, Scene::Drawable::Pipeline pipeline, GLuint vao) {
+std::shared_ptr< GameObject > LevelGenerator::spawn_object(ObjectType type, glm::vec3 position, glm::quat rotation, MeshBuffer const * mesh_buffer_, Scene::Drawable::Pipeline pipeline_, GLuint vao_) {
     // Create a new transform entry
     scene_ptr->transforms.emplace_back();
 	Scene::Transform* t = &scene_ptr->transforms.back();
@@ -41,13 +41,13 @@ std::shared_ptr< GameObject > LevelGenerator::spawn_object(ObjectType type, glm:
 	t->rotation = rotation;
 
     // Lookup the mesh
-    Mesh const &mesh = mesh_buffer->lookup(xf_name_lookup[type]);
+    Mesh const &mesh = mesh_buffer_->lookup(xf_name_lookup[type]);
 	
     // Add new drawable
 	scene_ptr->drawables.emplace_back(t);
 	Scene::Drawable &drawable = scene_ptr->drawables.back();
-	drawable.pipeline = pipeline;
-	drawable.pipeline.vao = vao;
+	drawable.pipeline = pipeline_;
+	drawable.pipeline.vao = vao_;
 	drawable.pipeline.type = mesh.type;
 	drawable.pipeline.start = mesh.start;
 	drawable.pipeline.count = mesh.count;
