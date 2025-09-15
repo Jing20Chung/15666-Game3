@@ -49,9 +49,9 @@ Load< Sound::Sample > honk_sample(LoadTagDefault, []() -> Sound::Sample const * 
 	return new Sound::Sample(data_path("honk.wav"));
 });
 
-
 PlayMode::PlayMode() : scene(*game_scene) {
 	scene.build_bounds_map(game_level1_meshes);
+	level_gen.load(data_path("game3_1.level"));
 	level_gen.init(&scene, game_level1_meshes, &level_objects, 
 	 lit_color_texture_program_pipeline, game_level1_meshes_for_lit_color_texture_program
 	);

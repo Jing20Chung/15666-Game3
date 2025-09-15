@@ -10,8 +10,11 @@ else
 	BLENDER = blender
 endif
 
+PYTHON := /opt/homebrew/bin/python3
+
 EXPORT_MESHES=export-meshes.py
 EXPORT_SCENE=export-scene.py
+EXPORT_LEVEL=export-level.py
 
 DIST=../dist
 
@@ -22,6 +25,7 @@ all : \
 	$(DIST)/game_win.scene \
 	$(DIST)/game_lose.pnct \
 	$(DIST)/game_lose.scene \
+	$(DIST)/game3_1.level \
 
 
 $(DIST)/game3_1.scene : game3_1.blend $(EXPORT_SCENE)
@@ -41,3 +45,6 @@ $(DIST)/game_lose.scene : game_lose.blend $(EXPORT_SCENE)
 
 $(DIST)/game_lose.pnct : game_lose.blend $(EXPORT_MESHES)
 	$(BLENDER) --background --python $(EXPORT_MESHES) -- '$<':Main '$@'
+
+$(DIST)/game3_1.level : Level_1_Map.txt $(EXPORT_LEVEL)
+	$(PYTHON) $(EXPORT_LEVEL) -- '$<' '$@'

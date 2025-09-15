@@ -8,7 +8,11 @@
 // from https://stackoverflow.com/questions/11515469/how-do-i-print-vector-values-of-type-glmvec3-that-have-been-passed-by-referenc
 #define GLM_ENABLE_EXPERIMENTAL
 #include "glm/gtx/string_cast.hpp"
+#include "read_write_chunk.hpp"
 #include <iostream>
+#include <fstream>
+
+LevelGenerator::LevelGenerator () { }
 
 // I am using shared_ptr to manage object, I don't need to delete all the object in the container manually.
 LevelGenerator::~LevelGenerator() { }
@@ -131,8 +135,33 @@ void LevelGenerator::init(Scene* scene_, MeshBuffer const * mesh_buffer_, std::l
     xf_name_lookup[ObjectType::MovingFloor] = "Floor";
     xf_name_lookup[ObjectType::Bullet] = "Bullet";
     xf_name_lookup[ObjectType::JumpAbility] = "JumpAbility";
-    level_maps[0] = {{1,0,-1,1},
-                     {1,0,2,-1,1},
-                     {-1},
-                     {0,1,-1,0,0,1}};
+    // level_maps[0] = {{1,0,-1,1},
+    //                  {1,0,2,-1,1},
+    //                  {-1},
+    //                  {0,1,-1,0,0,1}};
+}
+
+
+void LevelGenerator::load(std::string const &filename) {
+	std::ifstream file(filename, std::ios::binary);
+	std::vector< int > col_size;
+	read_chunk(file, "cols", &col_size);
+    // std::cout<<"col size = " << col_size[0] << std::endl;
+	std::vector< int > data;
+	read_chunk(file, "lvl1", &data);
+    
+    level_maps.clear();
+    std::vector<int> row;
+    int cnt = 0;
+    for(auto d : data) {
+        // std::cout << d << " ";
+        row.push_back(d);
+        cnt++;
+        if (cnt >= col_size[0]) {
+            cnt = 0;
+            level_maps[cur_level_index].push_back(row);
+            row.clear();
+            // std::cout << std::endl;
+        }
+    }
 }

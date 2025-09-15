@@ -228,3 +228,6 @@ write_chunk(b'lmp0', lamp_data)
 
 print("Wrote " + str(blob.tell()) + " bytes to '" + outfile + "'")
 blob.close()
+
+with open(outfile, 'rb') as file:
+	print(file.readlines())

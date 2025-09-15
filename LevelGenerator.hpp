@@ -19,6 +19,7 @@ enum struct ObjectType {
 };
 
 struct LevelGenerator {
+    LevelGenerator();
     ~LevelGenerator();
     void spawn_object_row(int level_index, int row_index);
     std::shared_ptr< GameObject > spawn_object(ObjectType type, glm::vec3 position, glm::quat rotation, MeshBuffer const * mesh_buffer, Scene::Drawable::Pipeline pipeline, GLuint vao);
@@ -27,6 +28,8 @@ struct LevelGenerator {
     void start_spawn(int level_index);
     void stop_spawn();
     void init(Scene* scene_, MeshBuffer const * mesh_buffer_, std::list< std::shared_ptr< GameObject > >* object_container_, Scene::Drawable::Pipeline pipeline_, GLuint vao_);
+    void load(std::string const &filename);
+    
     Scene* scene_ptr;
     MeshBuffer const * mesh_buffer;
     Scene::Drawable::Pipeline pipeline;
