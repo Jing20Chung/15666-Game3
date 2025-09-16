@@ -36,8 +36,7 @@ struct PlayMode : Mode {
 
 	glm::vec3 get_leg_tip_position();
 
-	//music coming from the tip of the leg (as a demonstration):
-	std::shared_ptr< Sound::PlayingSample > leg_tip_loop;
+	std::shared_ptr< Sound::PlayingSample > game_background_music;
 
 	//car honk sound:
 	std::shared_ptr< Sound::PlayingSample > honk_oneshot;
@@ -53,4 +52,13 @@ struct PlayMode : Mode {
 
 	// Player
 	Player* player;
+
+	// Start cam pos
+	Scene::Transform *first_cam_pos = nullptr;
+	// Second cam pos
+	Scene::Transform *second_cam_pos = nullptr;
+
+	float cur_accumulated_time = 0;
+	float time_switch_to_second_cam_pos = 13;
+	float song_end_time = 40;
 };

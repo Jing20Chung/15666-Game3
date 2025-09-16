@@ -41,7 +41,7 @@ Load< Scene > game_scene(LoadTagDefault, []() -> Scene const * {
 });
 
 Load< Sound::Sample > dusty_floor_sample(LoadTagDefault, []() -> Sound::Sample const * {
-	return new Sound::Sample(data_path("dusty-floor.opus"));
+	return new Sound::Sample(data_path("Game3.opus"));
 });
 
 
@@ -49,7 +49,19 @@ Load< Sound::Sample > honk_sample(LoadTagDefault, []() -> Sound::Sample const * 
 	return new Sound::Sample(data_path("honk.wav"));
 });
 
+
 PlayMode::PlayMode() : scene(*game_scene) {
+
+	for (auto& transform: scene.transforms) {
+		// std::cout << "Transform name: " << transform.name << std::endl;
+		if (transform.name == "FirstCamPos") first_cam_pos = &transform;
+		if (transform.name == "SecondCamPos") second_cam_pos = &transform;
+	}
+
+	if (first_cam_pos == nullptr) throw std::runtime_error("first_cam_pos not found.");
+	if (second_cam_pos == nullptr) throw std::runtime_error("second_cam_pos not found.");
+
+
 	scene.build_bounds_map(game_level1_meshes);
 	level_gen.load(data_path("game3_1.level"));
 	level_gen.init(&scene, game_level1_meshes, &level_objects, 
@@ -62,9 +74,10 @@ PlayMode::PlayMode() : scene(*game_scene) {
 	if (scene.cameras.size() != 1) throw std::runtime_error("Expecting scene to have exactly one camera, but it has " + std::to_string(scene.cameras.size()));
 	camera = &scene.cameras.front();
 
+	camera->transform = first_cam_pos;
 	//start music loop playing:
 	// (note: position will be over-ridden in update())
-	leg_tip_loop = Sound::loop_3D(*dusty_floor_sample, 1.0f, get_leg_tip_position(), 10.0f);
+	game_background_music = Sound::play(*dusty_floor_sample, 1.0f);
 }
 
 PlayMode::~PlayMode() {
@@ -95,8 +108,8 @@ bool PlayMode::handle_event(SDL_Event const &evt, glm::uvec2 const &window_size)
 			down.pressed = true;
 			return true;
 		} else if (evt.key.key == SDLK_SPACE) {
-			if (honk_oneshot) honk_oneshot->stop();
-			honk_oneshot = Sound::play_3D(*honk_sample, 0.3f, glm::vec3(4.6f, -7.8f, 6.9f)); //hardcoded position of front of car, from blender
+			// if (honk_oneshot) honk_oneshot->stop();
+			// honk_oneshot = Sound::play_3D(*honk_sample, 0.3f, glm::vec3(4.6f, -7.8f, 6.9f)); //hardcoded position of front of car, from blender
 		}
 	} else if (evt.type == SDL_EVENT_KEY_UP) {
 		if (evt.key.key == SDLK_A) {
@@ -154,8 +167,23 @@ void PlayMode::clean_up_destroyed_object() {
 }
 
 void PlayMode::update(float elapsed) {
-	//move sound to follow leg tip position:
-	// leg_tip_loop->set_position(get_leg_tip_position(), 1.0f / 60.0f);
+	cur_accumulated_time += elapsed;
+	
+	if (cur_accumulated_time >= time_switch_to_second_cam_pos) {
+		static float t = 0;
+		if (t == 0) {
+			player->transform->position = glm::vec3(0, -5, 5);
+		}
+		camera->transform->rotation = glm::mix(first_cam_pos->rotation, second_cam_pos->rotation, t);
+		camera->transform->position = glm::mix(first_cam_pos->position, second_cam_pos->position, t);
+		t += elapsed;
+		if (t >= 1) {
+			time_switch_to_second_cam_pos = 100000;
+			player->isTopDownView = false;
+			t = 0;
+		}
+	}
+
 	level_gen.update(elapsed);
 
 	if (player->isRequestShootBullet) {
@@ -223,9 +251,13 @@ void PlayMode::update(float elapsed) {
 	up.downs = 0;
 	down.downs = 0;
 
-
 	if (player->isDead) {
 		Mode::set_current(std::make_shared< LoseMode >());
+		Sound::stop_all_samples();
+	}
+	else if (cur_accumulated_time >= song_end_time) {
+		Mode::set_current(std::make_shared< WinMode >());
+		Sound::stop_all_samples();
 	}
 }
 
@@ -272,10 +304,4 @@ void PlayMode::draw(glm::uvec2 const &drawable_size) {
 			glm::u8vec4(0xff, 0xff, 0xff, 0x00));
 	}
 	GL_ERRORS();
-}
-
-glm::vec3 PlayMode::get_leg_tip_position() {
-	return glm::vec3(0,0,0);
-	//the vertex position here was read from the model in blender:
-	// return lower_leg->make_world_from_local() * glm::vec4(-1.26137f, -11.861f, 0.0f, 1.0f);
 }

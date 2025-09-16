@@ -27,6 +27,9 @@ struct Player : GameObject {
     bool isTopDownView = true;
 
     // from PlayMode
-	std::shared_ptr< Sound::PlayingSample > move_oneshot;
+	std::shared_ptr< Sound::PlayingSample > move_left_oneshot;
+	std::shared_ptr< Sound::PlayingSample > move_right_oneshot;
+	std::shared_ptr< Sound::PlayingSample > jump_oneshot;
+	std::shared_ptr< Sound::PlayingSample > land_oneshot;
 	std::shared_ptr< Sound::PlayingSample > shoot_oneshot;
 };

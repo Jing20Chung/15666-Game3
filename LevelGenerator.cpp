@@ -135,10 +135,6 @@ void LevelGenerator::init(Scene* scene_, MeshBuffer const * mesh_buffer_, std::l
     xf_name_lookup[ObjectType::MovingFloor] = "Floor";
     xf_name_lookup[ObjectType::Bullet] = "Bullet";
     xf_name_lookup[ObjectType::JumpAbility] = "JumpAbility";
-    // level_maps[0] = {{1,0,-1,1},
-    //                  {1,0,2,-1,1},
-    //                  {-1},
-    //                  {0,1,-1,0,0,1}};
 }
 
 

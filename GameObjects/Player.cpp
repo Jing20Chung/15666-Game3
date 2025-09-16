@@ -14,16 +14,48 @@
 #include "glm/gtx/string_cast.hpp"
 
 Load< Sound::Sample > move_left_sample(LoadTagDefault, []() -> Sound::Sample const * {
-	return new Sound::Sample(data_path("honk.wav"));
+	return new Sound::Sample(data_path("Game3_SFX-Drum-1.opus"));
 });
 
 Load< Sound::Sample > move_right_sample(LoadTagDefault, []() -> Sound::Sample const * {
-	return new Sound::Sample(data_path("honk.wav"));
+	return new Sound::Sample(data_path("Game3_SFX-Drum-1.opus"));
 });
 
 Load< Sound::Sample > shoot_sample(LoadTagDefault, []() -> Sound::Sample const * {
-	return new Sound::Sample(data_path("honk.wav"));
+	return new Sound::Sample(data_path("Game3_SFX-Pizz-1.opus"));
 });
+
+Load< Sound::Sample > jump_sample(LoadTagDefault, []() -> Sound::Sample const * {
+	return new Sound::Sample(data_path("Game3_SFX-Celesta-1.opus"));
+});
+
+Load< Sound::Sample > land_sample(LoadTagDefault, []() -> Sound::Sample const * {
+	return new Sound::Sample(data_path("Game3_SFX-Celesta-2.opus"));
+});
+
+// Load< Sound::Sample > drum_1_sample(LoadTagDefault, []() -> Sound::Sample const * {
+// 	return new Sound::Sample(data_path("Game3_SFX-Drum-1.opus"));
+// });
+
+// Load< Sound::Sample > drum_2_sample(LoadTagDefault, []() -> Sound::Sample const * {
+// 	return new Sound::Sample(data_path("Game3_SFX-Drum-2.opus"));
+// });
+
+// Load< Sound::Sample > celesta_1_sample(LoadTagDefault, []() -> Sound::Sample const * {
+// 	return new Sound::Sample(data_path("Game3_SFX-Celesta-1.opus"));
+// });
+
+// Load< Sound::Sample > celesta_2_sample(LoadTagDefault, []() -> Sound::Sample const * {
+// 	return new Sound::Sample(data_path("Game3_SFX-Celesta-2.opus"));
+// });
+
+// Load< Sound::Sample > pizz_1_sample(LoadTagDefault, []() -> Sound::Sample const * {
+// 	return new Sound::Sample(data_path("Game3_SFX-Pizz-1.opus"));
+// });
+
+// Load< Sound::Sample > flute_1_sample(LoadTagDefault, []() -> Sound::Sample const * {
+// 	return new Sound::Sample(data_path("Game3_SFX-Flute-1.opus"));
+// });
 
 void Player::init() {
 	tag = "Player";
@@ -37,16 +69,20 @@ void Player::update_input(SDL_Event const &evt) {
     if (evt.type == SDL_EVENT_KEY_DOWN) {
 		if (evt.key.key == SDLK_SPACE) { // Jump
             input.space = true;
+			if (!isTopDownView) {
+				if (jump_oneshot) jump_oneshot->stop();
+				jump_oneshot = Sound::play_3D(*jump_sample, 0.3f, this->transform->position);
+			}
 			return;
 		} else if (evt.key.key == SDLK_A) {
             input.left = true;
-			if (move_oneshot) move_oneshot->stop();
-			move_oneshot = Sound::play_3D(*move_left_sample, 0.3f, glm::vec3(4.6f, -7.8f, 6.9f)); //hardcoded position of front of car, from blender
+			if (move_left_oneshot) move_left_oneshot->stop();
+			move_left_oneshot = Sound::play_3D(*move_left_sample, 0.3f, this->transform->position);
 			return;
 		} else if (evt.key.key == SDLK_D) {
             input.right = true;
-			if (move_oneshot) move_oneshot->stop();
-			move_oneshot = Sound::play_3D(*move_right_sample, 0.3f, glm::vec3(4.6f, -7.8f, 6.9f)); //hardcoded position of front of car, from blender
+			if (move_right_oneshot) move_right_oneshot->stop();
+			move_right_oneshot = Sound::play_3D(*move_right_sample, 0.3f, this->transform->position);
 			return;
 		} else if (evt.key.key == SDLK_W) {
             input.up = true;
@@ -74,10 +110,10 @@ void Player::update_input(SDL_Event const &evt) {
 		} 
 	} else if (evt.type == SDL_EVENT_MOUSE_BUTTON_DOWN) {
 		// reference: https://wiki.libsdl.org/SDL2/SDL_MouseButtonEvent
-		if (evt.button.button == SDL_BUTTON_LEFT) {
+		if (evt.button.button == SDL_BUTTON_LEFT && isTopDownView) {
 			input.mouse_left = true;
 			if (shoot_oneshot) shoot_oneshot->stop();
-			shoot_oneshot = Sound::play_3D(*shoot_sample, 0.3f, glm::vec3(4.6f, -7.8f, 6.9f)); //hardcoded position of front of car, from blender
+			shoot_oneshot = Sound::play_3D(*shoot_sample, 0.3f, this->transform->position); //hardcoded position of front of car, from blender
 			isRequestShootBullet = true;
 			return;
 		}
@@ -112,7 +148,7 @@ void Player::update(float elapsed) {
 void Player::update_position(float elapsed) {
 	if (isTopDownView) 
 	{
-		static float move_dist = 2.0f;
+		static float move_dist = 4.0f;
 		if (input.left) {
 			this->transform->position -= glm::vec3(move_dist, 0, 0);
 		}
@@ -128,9 +164,9 @@ void Player::update_position(float elapsed) {
 		input.mouse_left = false;
 
 	} else { // Velocity calculation
-		static float move_speed = 30.0f;
-		static float move_speed_max = 10.0f;
-		static float jump_speed = 30.0f;
+		static float move_speed = 3.0f;
+		static float move_speed_max = 5.0f;
+		static float jump_speed = 20.0f;
 		static float max_fall_speed = -30.0f;
 		static float slowdown_speed = 0.0f;
 		constexpr float C_VELOCITY_EPSILON = 0.001f;
@@ -191,7 +227,7 @@ void Player::update_position(float elapsed) {
 		}
 	}
 
-	if (this->transform->position.z < -10) {
+	if (this->transform->position.z < -10 || this->transform->position.y < -12) {
 		std::cout << "die!" << std::endl;
 		isDead = true;
 	}
@@ -205,15 +241,17 @@ void Player::update_rotation(float elapsed) {
 
 // on collision
 void Player::on_collision(GameObject* other) {
+	// std::cout << "Player collide with " << other->transform->name << std::endl;
 	if (other->tag == "Floor") {
 		if (isTopDownView) {
 			isDead = true;
 		}
 		else {
+			// std::cout << "set parent!" << std::endl;
 			parent = other;
+			velocity = glm::vec3(0,0,0);
+			if (land_oneshot) land_oneshot->stop();
+			land_oneshot = Sound::play_3D(*land_sample, 0.3f, this->transform->position);
 		}
-	}
-	else {
-		std::cout << "Player collide with " << other->transform->name << std::endl;
 	}
 }

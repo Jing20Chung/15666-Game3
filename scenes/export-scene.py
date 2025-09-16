@@ -107,9 +107,9 @@ def write_xfh(obj):
 	
 	ref = struct.pack('i', len(obj_to_xfh))
 	obj_to_xfh[par_obj] = ref
-	#print(repr(ref) + ": " + obj.name + " (" + repr(parent_ref) + ")")
+	print(repr(ref) + ": " + obj.name + " (" + repr(parent_ref) + ")")
 	transform = (world_to_parent @ obj.matrix_world).decompose()
-	#print(repr(transform))
+	print(repr(transform))
 
 	xfh_data += parent_ref
 	xfh_data += write_string(obj.name)
@@ -201,11 +201,11 @@ def write_objects(from_collection):
 			write_camera(obj)
 		elif obj.type == 'LIGHT':
 			write_light(obj)
-		elif obj.type == 'EMPTY' and obj.instance_collection:
+		elif obj.type == 'EMPTY': #and obj.instance_collection:
 			write_xfh(obj)
-			instance_parents.append(obj)
-			write_objects(obj.instance_collection)
-			instance_parents.pop()
+			# instance_parents.append(obj)
+			# write_objects(obj.instance_collection)
+			# instance_parents.pop()
 		else:
 			print('Skipping ' + obj.type)
 	for child in from_collection.children:
@@ -228,6 +228,3 @@ write_chunk(b'lmp0', lamp_data)
 
 print("Wrote " + str(blob.tell()) + " bytes to '" + outfile + "'")
 blob.close()
-
-with open(outfile, 'rb') as file:
-	print(file.readlines())

@@ -45,8 +45,8 @@ struct LevelGenerator {
     uint32_t cur_level_index = 0;
     uint32_t cur_object_id = 0;
     const float C_START_Y = 5.0f;
-    const float C_SIZE_PER_BLOCK = 1.0f;
-    const float C_SPACING = 1.0f;
+    const float C_SIZE_PER_BLOCK = 2.0f;
+    const float C_SPACING = 2.0f;
     const float C_POS_OFFSET = C_SIZE_PER_BLOCK + C_SPACING;
     const int C_EMPTY = -1;
 
