@@ -1,15 +1,16 @@
-# (TODO: your game's title)
+# StepByStep
 
-Author: (TODO: your name)
+**Author:** Jing Chung  
 
-Design: (TODO: In two sentences or fewer, describe what is new and interesting about your game.)
+**Design:** Levels and gameplay change according to the music sections. Players must quickly adapt within a short amount of time.  
 
-Screen Shot:
+**Screenshot:**  
 
-![Screen Shot](screenshot.png)
+![Screenshot](screenshot.png)  
 
-How To Play:
+**How to Play:**  
+- Use **A** and **D** on the keyboard to move left and right.  
+- Use **Left Mouse Click** to shoot bullets.  
+- Press **Spacebar** to jump.  
 
-(TODO: describe the controls and (if needed) goals/strategy.)
-
-This game was built with [NEST](NEST.md).
+This game was built with [NEST](NEST.md).  
